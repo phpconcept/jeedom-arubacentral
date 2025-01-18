@@ -1,0 +1,19 @@
+{
+	"id" : "arubacentral",
+	"name" : "ArubaCentral",
+    "description": "Le plugIn 'ArubaCentral' ...",        
+	"licence" : "AGPL",
+	"author" : "Vincent",
+	"require" : "4.0",
+    "version": "0.1.0-dev",
+	"category" : "devicecommunication",
+	"hasDependency" : false,
+    "maxDependancyInstallTime" : 10,
+	"hasOwnDeamon" : false,
+	"changelog" : "https://github.com/phpconcept/jeedom-arubacentral/blob/main/README.md#change-logs",
+	"documentation" : "https://github.com/phpconcept/jeedom-arubacentral/blob/main/README.md",
+	"changelog_beta" : "https://github.com/phpconcept/jeedom-arubacentral/blob/beta/README.md#change-logs",
+	"documentation_beta" : "https://github.com/phpconcept/jeedom-arubacentral/blob/beta/README.md",
+	"language" : ["fr_FR","en_US"],
+	"compatibility" : ["miniplus","smart","rpi","docker","diy","mobile","v4","atlas"]
+}
