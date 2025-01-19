@@ -958,6 +958,9 @@ class arubacentral extends eqLogic {
       if ($v_type == 'device') {
         $this->preSaveDevice();
       }
+      else if ($v_type == 'client') {
+        $this->preSaveClient();
+      }
       else if ($v_type == 'gateway') {
         $this->preSaveGateway();
       }
@@ -1049,6 +1052,61 @@ class arubacentral extends eqLogic {
       arubacentrallog::log('debug', "preSaveDevice() done");
     }
 
+    public function preSaveClient() {
+      arubacentrallog::log('debug', "preSaveClient()");
+      
+      // It's time to gather informations that will be used in postSave
+      
+      // ----- Look for new device
+      // The trick is that before the first save the eq is not in the DB so it has not yet a deviceId
+      // In my plugin I need to remember I first save the device in javscript with the sub-type 'device', 'gateway' or 'zone'
+      if ($this->getId() == '') {
+        arubacentrallog::log('debug', "preSaveClient() : new device, init properties");
+        
+        // ----- Set default values
+        $this->setConfiguration('client_cmd_auto_discover', 1);        
+        $this->setConfiguration('device_missing_detection', 0);
+        $this->setConfiguration('device_missing_timeout', 10);
+        
+
+        $this->setStatus('mqtt_info', '');
+        $this->setStatus('last_rcv_mqtt', 0);
+        
+        // ----- No data to store for postSave() tasks
+        $this->_pre_save_cache = null; // New eqpt => Nothing to collect        
+      }
+      
+      // ----- Look for existing device
+      else {
+        arubacentrallog::log('debug', "preSaveDevice() : existing device.");
+        
+        if ($this->acGetConf('device_missing_detection') == 0) {
+          $this->omgDeviceChangeToOnline();
+        }
+        
+        $v_missing_timeout = $this->acGetConf('device_missing_timeout');
+        if (!is_numeric($v_missing_timeout) || ($v_missing_timeout<1) || ($v_missing_timeout>1440)) {
+          $this->setConfiguration('device_missing_timeout', 10);
+        }
+
+        // ----- Load device (eqLogic) from DB
+        // These values will be erased with the save in DB, so keep what is needed to be kept
+        // $this : contient donc l'objet PHP avec les nouvelles valeurs, avant leur sauvegarde dans la DB
+        // $eqLogic : contient les valeurs dans la DB qui vont être remplacées par la sauvegarde de $this dans la DB
+      	$eqLogic = self::byId($this->getId());
+        
+        $this->_pre_save_cache = array(
+          'name'                  => $eqLogic->getName(),
+          'isEnable'              => $eqLogic->getIsEnable()
+        );
+                
+        arubacentrallog::log('debug', "_pre_save_cache=".json_encode($this->_pre_save_cache));
+        
+      }
+
+      arubacentrallog::log('debug', "preSaveClient() done");
+    }
+
     public function preSaveGateway() {
       //arubacentrallog::log('debug', "preSave() : gateway ...");
       
@@ -1090,6 +1148,9 @@ class arubacentral extends eqLogic {
       if ($v_type == 'device') {
         $this->postSaveDevice();
       }
+      else if ($v_type == 'client') {
+        $this->postSaveClient();
+      }
       else if ($v_type == 'gateway') {
         $this->postSaveGateway();
       }
@@ -1102,6 +1163,49 @@ class arubacentral extends eqLogic {
       // ----- Look for new device
       if (is_null($this->_pre_save_cache)) {
         arubacentrallog::log('debug', "postSaveDevice() : new device saved in DB.");
+        
+        // ----- Create default online status command
+        $this->omgCmdCreateMandatory('present');
+        /*
+        $v_cmd = $this->omgCmdCreate('present', ['name'=> __('Présent', __FILE__),
+                                     'type'=>'info',
+                                     'subtype'=>'binary', 
+                                     'isHistorized'=>0, 
+                                     'isVisible'=>0]);
+        $this->checkAndUpdateCmd('present', 0);
+        */
+      }
+      
+      // ----- Look for existing device
+      else {
+        arubacentrallog::log('debug', "postSaveDevice() : device saved in DB.");
+
+        arubacentrallog::log('debug', "Avant '".$this->_pre_save_cache['device_brand_model']."', Après '".$this->acGetConf('device_brand_model')."'");
+
+        // ----- Regarde si le device a changé de nature
+        if ($this->_pre_save_cache['device_brand_model'] != $this->acGetConf('device_brand_model')) {
+        
+                
+        }
+          
+        // ----- Look if device enable is changed
+        if ($this->_pre_save_cache['isEnable'] != $this->getIsEnable()) {
+        
+          // Code à dérouler si changement enable
+        }
+          
+      }
+      
+      arubacentrallog::log('debug', "postSaveDevice() done");
+    }
+
+    public function postSaveClient() {
+
+      //arubacentrallog::log('debug', "postSave() device");
+
+      // ----- Look for new device
+      if (is_null($this->_pre_save_cache)) {
+        arubacentrallog::log('debug', "postSaveClient() : new device saved in DB.");
         
         // ----- Create default online status command
         $this->omgCmdCreateMandatory('present');
@@ -1129,15 +1233,7 @@ class arubacentral extends eqLogic {
       
       // ----- Look for existing device
       else {
-        arubacentrallog::log('debug', "postSaveDevice() : device saved in DB.");
-
-        arubacentrallog::log('debug', "Avant '".$this->_pre_save_cache['device_brand_model']."', Après '".$this->acGetConf('device_brand_model')."'");
-
-        // ----- Regarde si le device a changé de nature
-        if ($this->_pre_save_cache['device_brand_model'] != $this->acGetConf('device_brand_model')) {
-        
-                
-        }
+        arubacentrallog::log('debug', "postSaveClient() : device saved in DB.");
           
         // ----- Look if device enable is changed
         if ($this->_pre_save_cache['isEnable'] != $this->getIsEnable()) {
@@ -1147,7 +1243,7 @@ class arubacentral extends eqLogic {
           
       }
       
-      arubacentrallog::log('debug', "postSaveDevice() done");
+      arubacentrallog::log('debug', "postSaveClient() done");
     }
 
     public function postSaveGateway() {
@@ -2074,11 +2170,11 @@ class arubacentral extends eqLogic {
       foreach ($p_attributes as $v_key => $v_value) {
       
         if ($v_key == 'stats') {
-          $v_save_device_flag |= $this->acDeviceUpdateAttributesFromStats($v_value);           
+          $v_save_device_flag |= $this->acClientUpdateAttributesFromStats($v_value);           
         }
           
         if ($v_key == 'location') {
-          $v_save_device_flag |= $this->acDeviceUpdateAttributesFromLocation($v_value);           
+          $v_save_device_flag |= $this->acClientUpdateAttributesFromLocation($v_value);           
         }
           
       }
@@ -2117,6 +2213,7 @@ class arubacentral extends eqLogic {
           // ----- Look if command exists
           $v_cmd = $this->getCmd(null, $v_key);
           if (!is_object($v_cmd) && $this->acGetConf('client_cmd_auto_discover')) {           
+            arubacentral::log('debug', "  Create new cmd for '".$v_key."'");
             $v_subtype = 'string';
             if (is_string($v_value)) $v_subtype = 'string';
             if (is_numeric($v_value)) $v_subtype = 'numeric';
@@ -2128,10 +2225,17 @@ class arubacentral extends eqLogic {
                                         'isHistorized'=>0, 
                                         'isVisible'=>$v_is_visible]);
           }
+          else {
+            //arubacentral::log('debug', "  Don't create new cmd (auto:".$this->acGetConf('client_cmd_auto_discover').")");
+          }
           
           // ----- Update value
           if (is_object($v_cmd)) {
+            //arubacentral::log('debug', "  Save value for '".$v_key."'");
             $this->checkAndUpdateCmd($v_key, $v_value);
+          }
+          else {
+            //arubacentral::log('debug', "  No cmd to save value for '".$v_key."'");
           }
         }
                 
