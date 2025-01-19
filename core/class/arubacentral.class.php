@@ -147,7 +147,7 @@ class arubacentral extends eqLogic {
       $v_result = array();
       $eqLogics = eqLogic::byType('arubacentral');
       foreach ($eqLogics as $v_eq) {
-        if ($v_eq->omgGetConf('type') != $p_type) {
+        if ($v_eq->acGetConf('type') != $p_type) {
           continue;
         }
         
@@ -161,7 +161,7 @@ class arubacentral extends eqLogic {
                 break;
               }
             }
-            else if ($v_eq->omgGetConf($v_key) != $v_value) {
+            else if ($v_eq->acGetConf($v_key) != $v_value) {
               $v_filter_ok = false;
               break;
             }
@@ -193,6 +193,19 @@ class arubacentral extends eqLogic {
     /* -------------------------------------------------------------------------*/
 
     /**---------------------------------------------------------------------------
+     * Method : acClientGetByTopic()
+     * Description :
+     *   arubacentral::acClientGetByTopic('ZZZZZ')
+     * Parameters :
+     * Returned value : 
+     * ---------------------------------------------------------------------------
+     */
+    public static function acClientGetByTopic($p_topic) {
+      return(arubacentral::acEqGetByTopic($p_topic, 'client'));
+    }
+    /* -------------------------------------------------------------------------*/
+
+    /**---------------------------------------------------------------------------
      * Method : omgDeviceList()
      * Description :
      *   arubacentral::omgDeviceList(['zone'=>'', 'ddd'=>'vvv'])
@@ -207,22 +220,22 @@ class arubacentral extends eqLogic {
     /* -------------------------------------------------------------------------*/
 
     /**---------------------------------------------------------------------------
-     * Method : omgEqGetByTopic()
+     * Method : acEqGetByTopic()
      * Description :
-     *   arubacentral::omgEqGetByTopic('ZZZZZ', 'device')
-     *   arubacentral::omgEqGetByTopic('RRRRR', 'gateway')
+     *   arubacentral::acEqGetByTopic('ZZZZZ', 'device')
+     *   arubacentral::acEqGetByTopic('RRRRR', 'gateway')
      * Parameters :
      * Returned value : 
      * ---------------------------------------------------------------------------
      */
-    public static function omgEqGetByTopic($p_topic, $p_type) {
+    public static function acEqGetByTopic($p_topic, $p_type) {
       $eqLogics = eqLogic::byType('arubacentral');
       foreach ($eqLogics as $v_eq) {
-        if ($v_eq->omgGetConf('type') != $p_type) {
+        if ($v_eq->acGetConf('type') != $p_type) {
           continue;
         }
         
-        if ($v_eq->omgGetConf($p_type.'_mqtt_topic') == $p_topic) {
+        if ($v_eq->acGetConf($p_type.'_mqtt_topic') == $p_topic) {
           return($v_eq);
         }
       }
@@ -231,15 +244,15 @@ class arubacentral extends eqLogic {
     /* -------------------------------------------------------------------------*/
 
     /**---------------------------------------------------------------------------
-     * Method : omgDeviceGetByTopic()
+     * Method : acDeviceGetByTopic()
      * Description :
-     *   arubacentral::omgDeviceGetByTopic('ZZZZZ')
+     *   arubacentral::acDeviceGetByTopic('ZZZZZ')
      * Parameters :
      * Returned value : 
      * ---------------------------------------------------------------------------
      */
-    public static function omgDeviceGetByTopic($p_topic) {
-      return(arubacentral::omgEqGetByTopic($p_topic, 'device'));
+    public static function acDeviceGetByTopic($p_topic) {
+      return(arubacentral::acEqGetByTopic($p_topic, 'device'));
     }
     /* -------------------------------------------------------------------------*/
 
@@ -256,6 +269,33 @@ class arubacentral extends eqLogic {
       $v_type_list = ['ap'   => ['name'=> __('AP', __FILE__)],
                       'switch' => ['name'=> __('Switch', __FILE__)],
                       'gateway' => ['name'=> __('Gateway', __FILE__)]
+                     ];
+      
+      if ($p_id_only) {
+        $v_short_list = array();
+        foreach ($v_result_list as $v_key => $v_data) {
+          $v_short_list[] = $v_key;
+        }
+        return($v_short_list);
+      }
+      
+      return($v_type_list);
+    }
+    /* -------------------------------------------------------------------------*/
+
+    /**---------------------------------------------------------------------------
+     * Method : acClientTypeList()
+     * Description :
+     *   arubacentral::acClientTypeList()
+     * Parameters :
+     * Returned value : 
+     * ---------------------------------------------------------------------------
+     */
+    public static function acClientTypeList($p_id_only=true) {
+
+      $v_type_list = ['unknown'   => ['name'=> __('Unknown', __FILE__)],
+                      'ethernet'   => ['name'=> __('Ethernet', __FILE__)],
+                      'wifi' => ['name'=> __('WiFi', __FILE__)]
                      ];
       
       if ($p_id_only) {
@@ -293,7 +333,7 @@ class arubacentral extends eqLogic {
      * ---------------------------------------------------------------------------
      */
     public static function omgGatewayGetByTopic($p_topic) {
-      return(arubacentral::omgEqGetByTopic($p_topic, 'gateway'));
+      return(arubacentral::acEqGetByTopic($p_topic, 'gateway'));
     }
     /* -------------------------------------------------------------------------*/
 
@@ -521,7 +561,7 @@ class arubacentral extends eqLogic {
         $v_item['id'] = $p_mqtt_id;
         $v_item['brand_name'] = $v_brand_model_name;
         $v_item['properties'] = $p_properties;
-        $v_item['gateway_topic'] = $p_gateway->omgGetConf('gateway_mqtt_topic');
+        $v_item['gateway_topic'] = $p_gateway->acGetConf('gateway_mqtt_topic');
         
         $v_scan_list[$p_mqtt_id] = $v_item;
         
@@ -960,11 +1000,11 @@ class arubacentral extends eqLogic {
       else {
         arubacentrallog::log('debug', "preSaveDevice() : existing device.");
         
-        if ($this->omgGetConf('device_missing_detection') == 0) {
+        if ($this->acGetConf('device_missing_detection') == 0) {
           $this->omgDeviceChangeToOnline();
         }
         
-        $v_missing_timeout = $this->omgGetConf('device_missing_timeout');
+        $v_missing_timeout = $this->acGetConf('device_missing_timeout');
         if (!is_numeric($v_missing_timeout) || ($v_missing_timeout<1) || ($v_missing_timeout>1440)) {
           $this->setConfiguration('device_missing_timeout', 10);
         }
@@ -977,19 +1017,19 @@ class arubacentral extends eqLogic {
         
         $this->_pre_save_cache = array(
           'name'                  => $eqLogic->getName(),
-          'device_brand_model'    => $eqLogic->omgGetConf('device_brand_model'),
+          'device_brand_model'    => $eqLogic->acGetConf('device_brand_model'),
           'isEnable'              => $eqLogic->getIsEnable()
         );
         
-        if (($eqLogic->omgGetConf('device_brand_model') != $this->omgGetConf('device_brand_model')) 
+        if (($eqLogic->acGetConf('device_brand_model') != $this->acGetConf('device_brand_model')) 
             && (!$this->_no_score_reset_flag)) {
           $this->setConfiguration('device_brand_score', 0);
         }
         $this->_no_score_reset_flag = false;
         
-        if ($eqLogic->omgGetConf('device_brand_model') != $this->omgGetConf('device_brand_model')) {
+        if ($eqLogic->acGetConf('device_brand_model') != $this->acGetConf('device_brand_model')) {
         
-          $v_brand_model = arubacentral::omgBrandInfo($this->omgGetConf('device_brand_model'));
+          $v_brand_model = arubacentral::omgBrandInfo($this->acGetConf('device_brand_model'));
           if ($v_brand_model == null) {
             $v_brand_model = arubacentral::omgBrandInfo('Generic:Generic');
           }
@@ -998,8 +1038,8 @@ class arubacentral extends eqLogic {
           $this->omgDeviceUpdateCmds($v_brand_model);     
         }
 
-        if ($eqLogic->omgGetConf('brand_auto_discover') != $this->omgGetConf('brand_auto_discover')) {
-          $this->setConfiguration('brand_auto_discover_count', $this->omgGetConf('brand_auto_discover'));
+        if ($eqLogic->acGetConf('brand_auto_discover') != $this->acGetConf('brand_auto_discover')) {
+          $this->setConfiguration('brand_auto_discover_count', $this->acGetConf('brand_auto_discover'));
         }
                 
         arubacentrallog::log('debug', "_pre_save_cache=".json_encode($this->_pre_save_cache));
@@ -1091,10 +1131,10 @@ class arubacentral extends eqLogic {
       else {
         arubacentrallog::log('debug', "postSaveDevice() : device saved in DB.");
 
-        arubacentrallog::log('debug', "Avant '".$this->_pre_save_cache['device_brand_model']."', Après '".$this->omgGetConf('device_brand_model')."'");
+        arubacentrallog::log('debug', "Avant '".$this->_pre_save_cache['device_brand_model']."', Après '".$this->acGetConf('device_brand_model')."'");
 
         // ----- Regarde si le device a changé de nature
-        if ($this->_pre_save_cache['device_brand_model'] != $this->omgGetConf('device_brand_model')) {
+        if ($this->_pre_save_cache['device_brand_model'] != $this->acGetConf('device_brand_model')) {
         
                 
         }
@@ -1372,7 +1412,7 @@ class arubacentral extends eqLogic {
             if (is_array($v_properties)) {
               arubacentrallog::log('debug', 'Device Id "'.$v_id.'"');
               
-              if (($v_object = arubacentral::omgDeviceGetByTopic($v_id)) !== null) {
+              if (($v_object = arubacentral::acDeviceGetByTopic($v_id)) !== null) {
                 //arubacentrallog::log('debug', 'Is in the list -----------');
                 $v_object->acDeviceUpdateAttributes($v_properties, $v_gateway);
               }
@@ -1393,8 +1433,29 @@ class arubacentral extends eqLogic {
           }
         }
         
+        if (isset($v_values['clients'])) {
+          foreach ($v_values['clients'] as $v_id => $v_properties) {
+            if (is_array($v_properties)) {
+              arubacentrallog::log('debug', 'Client Id "'.$v_id.'"');
+              
+              if (($v_object = arubacentral::acClientGetByTopic($v_id)) !== null) {
+                //arubacentrallog::log('debug', 'Is in the list -----------');
+                $v_object->acClientUpdateAttributes($v_properties, $v_gateway);
+              }
+              else {
+                 // arubacentral::omgInclusionLearn($v_id, $v_properties, $v_gateway);
+              }
+              
+            }
+            else {
+              arubacentrallog::log('debug', 'Unexpected Gateway Attribut "'.$v_id.'" = "'.$v_properties.'"');
+              //$v_gateway->omgGatewayUpdateBleAttribut($v_id, $v_properties);
+            }
+          }
+        }
+        
         if (isset($v_values['sys'])) {
-          if ($v_gateway->omgGetConf('prop_auto_discover')) {
+          if ($v_gateway->acGetConf('prop_auto_discover')) {
             $v_gateway->acGatewayUpdateSysAttribut($v_values['sys']);
           }
         }
@@ -1411,7 +1472,7 @@ class arubacentral extends eqLogic {
 
 
     /**---------------------------------------------------------------------------
-     * Method : omgGetConf()
+     * Method : acGetConf()
      * Description :
      *   Récupère la valeur stockée pour un attribut de configuration.
      *   Ou la valeur par defaut si absent.
@@ -1419,7 +1480,7 @@ class arubacentral extends eqLogic {
      * Returned value : 
      * ---------------------------------------------------------------------------
      */
-	function omgGetConf($p_key) {
+	function acGetConf($p_key) {
 	  return $this->getConfiguration($p_key, '');
 	}
     /* -------------------------------------------------------------------------*/
@@ -1635,7 +1696,7 @@ class arubacentral extends eqLogic {
         else {
           // ----- Look if command exists
           $v_cmd = $this->getCmd(null, $v_key);
-          if (!is_object($v_cmd) && $this->omgGetConf('prop_auto_discover')) {            
+          if (!is_object($v_cmd) && $this->acGetConf('prop_auto_discover')) {            
             $v_subtype = 'string';
             if (is_string($v_value)) $v_subtype = 'string';
             if (is_numeric($v_value)) $v_subtype = 'numeric';
@@ -1721,7 +1782,7 @@ class arubacentral extends eqLogic {
       }
       
       $v_last_ts = $this->getStatus('last_rcv_mqtt');
-      $v_timeout = 60*$this->omgGetConf('online_timeout');
+      $v_timeout = 60*$this->acGetConf('online_timeout');
       
       //arubacentrallog::log('debug', 'omgGatewayCheckOnline() last_rcv_mqtt : '.$v_last_ts);
       //arubacentrallog::log('debug', 'omgGatewayCheckOnline() timeout : '.$v_timeout);
@@ -1741,7 +1802,7 @@ class arubacentral extends eqLogic {
      * ---------------------------------------------------------------------------
      */
     public function omgDeviceGetBrandInfo() {
-      $v_brand_name = $this->omgGetConf('device_brand_model');
+      $v_brand_name = $this->acGetConf('device_brand_model');
       $v_brand_model = arubacentral::omgBrandInfo($v_brand_name);
       if ($v_brand_model !== null) {
         return($v_brand_model);
@@ -1898,7 +1959,7 @@ class arubacentral extends eqLogic {
           
           // ----- Look if command exists
           $v_cmd = $this->getCmd(null, $v_key);
-          if (!is_object($v_cmd) && $this->omgGetConf('cmd_auto_discover')) {           
+          if (!is_object($v_cmd) && $this->acGetConf('cmd_auto_discover')) {           
             $v_subtype = 'string';
             if (is_string($v_value)) $v_subtype = 'string';
             if (is_numeric($v_value)) $v_subtype = 'numeric';
@@ -1974,7 +2035,7 @@ class arubacentral extends eqLogic {
     public function omgDeviceCheckOnline() {    
       arubacentrallog::log('debug', 'omgDeviceCheckOnline()');
       
-      if (($v_present = $this->omgGetConf('device_missing_detection')) == 0) {
+      if (($v_present = $this->acGetConf('device_missing_detection')) == 0) {
         return;
       }
       
@@ -1983,7 +2044,7 @@ class arubacentral extends eqLogic {
       }
       
       $v_last_ts = $this->getStatus('last_rcv_mqtt');
-      $v_timeout = 60*$this->omgGetConf('device_missing_timeout');
+      $v_timeout = 60*$this->acGetConf('device_missing_timeout');
       
       //arubacentrallog::log('debug', 'omgDeviceCheckOnline() last_rcv_mqtt : '.$v_last_ts);
       //arubacentrallog::log('debug', 'omgDeviceCheckOnline() timeout : '.$v_timeout);
@@ -1994,6 +2055,143 @@ class arubacentral extends eqLogic {
       }
     }
     /* -------------------------------------------------------------------------*/
+
+    /**---------------------------------------------------------------------------
+     * Method : acClientUpdateAttributes()
+     * Description :
+     * Parameters :
+     * Returned value : 
+     * ---------------------------------------------------------------------------
+     */
+    public function acClientUpdateAttributes($p_attributes, $p_gateway=null) {
+      arubacentral::log('debug', "Update attributs for '".$this->getName()."' with ".json_encode($p_attributes));
+      
+      $this->omgDeviceFlagRcvMqttMsg();
+      
+      $v_save_device_flag = false;
+
+      // ----- On regarde chaque categorie d'attribut  
+      foreach ($p_attributes as $v_key => $v_value) {
+      
+        if ($v_key == 'stats') {
+          $v_save_device_flag |= $this->acDeviceUpdateAttributesFromStats($v_value);           
+        }
+          
+        if ($v_key == 'location') {
+          $v_save_device_flag |= $this->acDeviceUpdateAttributesFromLocation($v_value);           
+        }
+          
+      }
+            
+      if ($v_save_device_flag) {
+        $this->save();
+      }
+      
+      arubacentral::log('debug', "Update attributs done");
+    }
+    /* -------------------------------------------------------------------------*/
+
+
+    /**---------------------------------------------------------------------------
+     * Method : acClientUpdateAttributesFromStats()
+     * Description :
+     * Parameters :
+     * Returned value : 
+     * ---------------------------------------------------------------------------
+     */
+    public function acClientUpdateAttributesFromStats($p_attributes, $p_gateway=null) {
+      arubacentral::log('debug', "Update Stats attributs for '".$this->getName()."' with ".json_encode($p_attributes));
+      
+      $v_save_device_flag = false;
+      
+      // ----- On regarde chaque attribut 
+      foreach ($p_attributes as $v_key => $v_value) {
+        arubacentral::log('debug', "  Attribute '".$v_key."' = ".$v_value."");
+        
+        // TBC : on verra plus tard si on veut filtrer certaines valeurs
+        $v_att_type = 'cmd';
+        if ($v_att_type == 'cmd') {
+
+          $v_key = 'stat.'.$v_key;
+          
+          // ----- Look if command exists
+          $v_cmd = $this->getCmd(null, $v_key);
+          if (!is_object($v_cmd) && $this->acGetConf('client_cmd_auto_discover')) {           
+            $v_subtype = 'string';
+            if (is_string($v_value)) $v_subtype = 'string';
+            if (is_numeric($v_value)) $v_subtype = 'numeric';
+            $v_is_visible = 0;
+            
+            $v_cmd = $this->omgCmdCreate($v_key, ['name'=>$v_key,
+                                        'type'=>'info',
+                                        'subtype'=>$v_subtype, 
+                                        'isHistorized'=>0, 
+                                        'isVisible'=>$v_is_visible]);
+          }
+          
+          // ----- Update value
+          if (is_object($v_cmd)) {
+            $this->checkAndUpdateCmd($v_key, $v_value);
+          }
+        }
+                
+      }
+            
+      arubacentral::log('debug', "Update attributs done");
+      return($v_save_device_flag);
+    }
+    /* -------------------------------------------------------------------------*/
+
+    /**---------------------------------------------------------------------------
+     * Method : acClientUpdateAttributesFromLocation()
+     * Description :
+     * Parameters :
+     * Returned value : 
+     * ---------------------------------------------------------------------------
+     */
+    public function acClientUpdateAttributesFromLocation($p_attributes, $p_gateway=null) {
+      arubacentral::log('debug', "Update Location attributs for '".$this->getName()."' with ".json_encode($p_attributes));
+      
+      $v_save_device_flag = false;
+      
+      // ----- On regarde chaque attribut 
+      foreach ($p_attributes as $v_key => $v_value) {
+        arubacentral::log('debug', "  Attribute '".$v_key."' = ".$v_value."");
+        
+        // TBC : on verra plus tard si on veut filtrer certaines valeurs
+        $v_att_type = 'cmd';
+        if ($v_att_type == 'cmd') {
+
+          $v_key = 'location.'.$v_key;
+          
+          // ----- Look if command exists
+          $v_cmd = $this->getCmd(null, $v_key);
+          if (!is_object($v_cmd) && $this->acGetConf('client_cmd_auto_discover')) {           
+            $v_subtype = 'string';
+            if (is_string($v_value)) $v_subtype = 'string';
+            if (is_numeric($v_value)) $v_subtype = 'numeric';
+            $v_is_visible = 0;
+            
+            $v_cmd = $this->omgCmdCreate($v_key, ['name'=>$v_key,
+                                        'type'=>'info',
+                                        'subtype'=>$v_subtype, 
+                                        'isHistorized'=>0, 
+                                        'isVisible'=>$v_is_visible]);
+          }
+          
+          // ----- Update value
+          if (is_object($v_cmd)) {
+            $this->checkAndUpdateCmd($v_key, $v_value);
+          }
+        }
+                
+      }
+            
+      arubacentral::log('debug', "Update attributs done");
+      return($v_save_device_flag);
+    }
+    /* -------------------------------------------------------------------------*/
+
 
 
 

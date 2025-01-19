@@ -349,6 +349,9 @@ function cp_equipement_display_init() {
   else if (v_type == 'device') {
     cp_device_display_init();
   }
+  else if (v_type == 'client') {
+    cp_client_display_init();
+  }
   else {
     // TBC : valeur non supportée
     //console.log('Unexpected type is "'+v_type+'"');
@@ -368,6 +371,7 @@ function cp_gateway_display_init() {
   
   // ----- Affichage du panel pour les devices
   $('.cp_panel_device').hide();
+  $('.cp_panel_client').hide();
   $('.cp_panel_gateway').show();
   
 
@@ -389,6 +393,30 @@ function cp_device_display_init() {
   // ----- Affichage du panel pour les devices
   $('.cp_panel_device').show();
   $('.cp_panel_gateway').hide();  
+  $('.cp_panel_client').hide();  
+  
+  
+      
+}
+
+
+/*
+ * Fonction d'initialisation du display d'un client
+ */
+function cp_client_display_init() {
+
+  // ----- Some cleaning
+  $("#device_missing_detection_div").hide();
+  $('#device_missing_detection').each(function() {  
+    if (this.checked) {
+      $("#device_missing_detection_div").show();
+    }
+  });
+  
+  // ----- Affichage du panel pour les devices
+  $('.cp_panel_device').hide();
+  $('.cp_panel_gateway').hide();  
+  $('.cp_panel_client').show();  
   
   
       
@@ -480,14 +508,26 @@ function saveEqLogic(_eqLogic) {
 
   var v_att_to_save = { "device" : 
                           {"device_type":1,
+                           "device_mqtt_topic":1,
                            "cmd_auto_discover":1,
                            "device_missing_detection":1,
                            "device_missing_timeout":1,
+                           "notes":1,
+                           "____________":1
+                          }
+                        ,"client" : 
+                          {"client_type":1,
+                           "client_mqtt_topic":1,
+                           "client_cmd_auto_discover":1,
+                           "client_missing_detection":1,
+                           "client_missing_timeout":1,
+                           "notes":1,
                            "____________":1
                           }
                         ,"gateway" : 
                           {"gateway_mqtt_topic":1,
                            "prop_auto_discover":1,
+                           "notes":1,
                            "____________":1
                           }
                         };
@@ -497,7 +537,7 @@ function saveEqLogic(_eqLogic) {
     
     // ----- eqLogic type, should be 'device', 'zone' or 'gateway'
     var v_type = _eqLogic.configuration.type;
-    if ((v_type != 'device') && (v_type != 'gateway')) {
+    if ((v_type != 'device') && (v_type != 'client') && (v_type != 'gateway')) {
       $('#div_alert').showAlert({message: 'saveEqLogic() : Type inconnu : '+v_type, level: 'warning'});
       return _eqLogic;
     }

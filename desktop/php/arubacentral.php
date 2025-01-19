@@ -182,6 +182,9 @@ $eqLogics = eqLogic::byType($plugin->getId());
           <div class="cp_panel_device" style="display:none;">
     	  <?php include_file('desktop', 'arubacentral_device_nature.inc', 'php', 'arubacentral'); ?>
           </div>
+          <div class="cp_panel_client" style="display:none;">
+    	  <?php include_file('desktop', 'arubacentral_client_nature.inc', 'php', 'arubacentral'); ?>
+          </div>
     
 
     </div>
