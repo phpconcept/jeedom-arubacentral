@@ -135,15 +135,15 @@ class arubacentral extends eqLogic {
 
 
     /**---------------------------------------------------------------------------
-     * Method : omgEqList()
+     * Method : acEqList()
      * Description :
-     *   arubacentral::omgEqList('device', ['zone'=>'', 'ddd'=>'vvv'])
-     *   arubacentral::omgEqList('device', ['_isEnable'=>true]) : pour checker le getIsEnable de jeedom pour l'objet
+     *   arubacentral::acEqList('device', ['zone'=>'', 'ddd'=>'vvv'])
+     *   arubacentral::acEqList('device', ['_isEnable'=>true]) : pour checker le getIsEnable de jeedom pour l'objet
      * Parameters :
      * Returned value : 
      * ---------------------------------------------------------------------------
      */
-    public static function omgEqList($p_type, $p_filter_list=array()) {
+    public static function acEqList($p_type, $p_filter_list=array()) {
       $v_result = array();
       $eqLogics = eqLogic::byType('arubacentral');
       foreach ($eqLogics as $v_eq) {
@@ -179,6 +179,20 @@ class arubacentral extends eqLogic {
     /* -------------------------------------------------------------------------*/
 
     /**---------------------------------------------------------------------------
+     * Method : acClientList()
+     * Description :
+     *   arubacentral::acClientList(['zone'=>'', 'ddd'=>'vvv'])
+     *   arubacentral::acClientList(['_isEnable'=>true]) : pour checker le getIsEnable de jeedom pour l'objet
+     * Parameters :
+     * Returned value : 
+     * ---------------------------------------------------------------------------
+     */
+    public static function acClientList($p_filter_list=array()) {
+      return(arubacentral::acEqList('client', $p_filter_list));
+    }
+    /* -------------------------------------------------------------------------*/
+
+    /**---------------------------------------------------------------------------
      * Method : omgDeviceList()
      * Description :
      *   arubacentral::omgDeviceList(['zone'=>'', 'ddd'=>'vvv'])
@@ -188,7 +202,7 @@ class arubacentral extends eqLogic {
      * ---------------------------------------------------------------------------
      */
     public static function omgDeviceList($p_filter_list=array()) {
-      return(arubacentral::omgEqList('device', $p_filter_list));
+      return(arubacentral::acEqList('device', $p_filter_list));
     }
     /* -------------------------------------------------------------------------*/
 
@@ -230,6 +244,33 @@ class arubacentral extends eqLogic {
     /* -------------------------------------------------------------------------*/
 
     /**---------------------------------------------------------------------------
+     * Method : acDeviceTypeList()
+     * Description :
+     *   arubacentral::acDeviceTypeList()
+     * Parameters :
+     * Returned value : 
+     * ---------------------------------------------------------------------------
+     */
+    public static function acDeviceTypeList($p_id_only=true) {
+
+      $v_type_list = ['ap'   => ['name'=> __('AP', __FILE__)],
+                      'switch' => ['name'=> __('Switch', __FILE__)],
+                      'gateway' => ['name'=> __('Gateway', __FILE__)]
+                     ];
+      
+      if ($p_id_only) {
+        $v_short_list = array();
+        foreach ($v_result_list as $v_key => $v_data) {
+          $v_short_list[] = $v_key;
+        }
+        return($v_short_list);
+      }
+      
+      return($v_type_list);
+    }
+    /* -------------------------------------------------------------------------*/
+
+    /**---------------------------------------------------------------------------
      * Method : omgGatewayList()
      * Description :
      *   arubacentral::omgGatewayList(['zone'=>'', 'ddd'=>'vvv'])
@@ -239,7 +280,7 @@ class arubacentral extends eqLogic {
      * ---------------------------------------------------------------------------
      */
     public static function omgGatewayList($p_filter_list=array()) {
-      return(arubacentral::omgEqList('gateway', $p_filter_list));
+      return(arubacentral::acEqList('gateway', $p_filter_list));
     }
     /* -------------------------------------------------------------------------*/
 
@@ -257,27 +298,27 @@ class arubacentral extends eqLogic {
     /* -------------------------------------------------------------------------*/
 
     /**---------------------------------------------------------------------------
-     * Method : omgGatewayAutoDiscover()
+     * Method : acGatewayAutoDiscover()
      * Description :
      * Parameters :
      * Returned value : 
      * ---------------------------------------------------------------------------
      */
-    public static function omgGatewayAutoDiscover() {
+    public static function acGatewayAutoDiscover() {
       $v_auto_discover = config::byKey('gateway_auto_discover', 'arubacentral', '');
       return ($v_auto_discover==1?true:false);
     }
     /* -------------------------------------------------------------------------*/
 
     /**---------------------------------------------------------------------------
-     * Method : omgGatewayCreate()
+     * Method : acGatewayCreate()
      * Description :
      * Parameters :
      * Returned value : 
      * ---------------------------------------------------------------------------
      */
-    public static function omgGatewayCreate($p_mqtt_topic, $p_properties) {
-      arubacentral::log('debug', "omgGatewayCreate('".$p_mqtt_topic."')");
+    public static function acGatewayCreate($p_mqtt_topic, $p_properties) {
+      arubacentral::log('debug', "acGatewayCreate('".$p_mqtt_topic."')");
       arubacentrallog::log('debug', "  Properties : ".json_encode($p_properties));
       
       $v_jeedom_device = new arubacentral();
@@ -544,7 +585,7 @@ class arubacentral extends eqLogic {
       
       $v_jeedom_device->save();
       
-      $v_jeedom_device->omgDeviceUpdateAttributes($p_properties, $p_gateway);
+      $v_jeedom_device->acDeviceUpdateAttributes($p_properties, $p_gateway);
     }
     /* -------------------------------------------------------------------------*/
 
@@ -1316,8 +1357,8 @@ class arubacentral extends eqLogic {
         if ($v_gateway === null) {
           arubacentrallog::log('debug', 'No gateway with this topic "'.$v_key.'"');
           
-          if (arubacentral::omgGatewayAutoDiscover()) {
-            $v_gateway = arubacentral::omgGatewayCreate($v_key, $v_values);
+          if (arubacentral::acGatewayAutoDiscover()) {
+            $v_gateway = arubacentral::acGatewayCreate($v_key, $v_values);
           }
           
           // TBC : Create new gateway en attendant next
@@ -1326,14 +1367,14 @@ class arubacentral extends eqLogic {
         
         $v_gateway->omgGatewayFlagRcvMqttMsg();
         
-        if (isset($v_values['BTtoMQTT'])) {
-          foreach ($v_values['BTtoMQTT'] as $v_id => $v_properties) {
+        if (isset($v_values['devices'])) {
+          foreach ($v_values['devices'] as $v_id => $v_properties) {
             if (is_array($v_properties)) {
-              arubacentrallog::log('debug', 'Object Id "'.$v_id.'"');
+              arubacentrallog::log('debug', 'Device Id "'.$v_id.'"');
               
               if (($v_object = arubacentral::omgDeviceGetByTopic($v_id)) !== null) {
                 //arubacentrallog::log('debug', 'Is in the list -----------');
-                $v_object->omgDeviceUpdateAttributes($v_properties, $v_gateway);
+                $v_object->acDeviceUpdateAttributes($v_properties, $v_gateway);
               }
               else {
                 //arubacentrallog::log('debug', 'Not in the list !');
@@ -1346,26 +1387,18 @@ class arubacentral extends eqLogic {
               
             }
             else {
-              arubacentrallog::log('debug', 'BLE Attribut "'.$v_id.'" = "'.$v_properties.'"');
-              $v_gateway->omgGatewayUpdateBleAttribut($v_id, $v_properties);
+              arubacentrallog::log('debug', 'Unexpected Gateway Attribut "'.$v_id.'" = "'.$v_properties.'"');
+              //$v_gateway->omgGatewayUpdateBleAttribut($v_id, $v_properties);
             }
           }
         }
         
-        if (isset($v_values['SYStoMQTT'])) {
+        if (isset($v_values['sys'])) {
           if ($v_gateway->omgGetConf('prop_auto_discover')) {
-            $v_gateway->omgGatewayUpdateSysAttribut($v_values['SYStoMQTT']);
+            $v_gateway->acGatewayUpdateSysAttribut($v_values['sys']);
           }
         }
         
-        if (isset($v_values['LWT'])) {
-          if ($v_values['LWT'] == 'offline') {
-            $v_gateway->omgGatewayChangeToOffline();
-          }
-          elseif  ($v_values['LWT'] == 'online') {
-            // Déjà fait par l'update à la reception du message
-          }
-        }
       }
 
     }
@@ -1576,19 +1609,19 @@ class arubacentral extends eqLogic {
      * Returned value : 
      * ---------------------------------------------------------------------------
      */
-    public function omgGatewayUpdateBleAttribut($p_name, $p_value) {
+    public function omgGatewayUpdateBleAttribut_DEPRECATED($p_name, $p_value) {
 
     }
     /* -------------------------------------------------------------------------*/
 
     /**---------------------------------------------------------------------------
-     * Method : omgGatewayUpdateSysAttribut()
+     * Method : acGatewayUpdateSysAttribut()
      * Description :
      * Parameters :
      * Returned value : 
      * ---------------------------------------------------------------------------
      */
-    public function omgGatewayUpdateSysAttribut($p_attributes) {
+    public function acGatewayUpdateSysAttribut($p_attributes) {
       arubacentral::log('debug', "Update system properties for '".$this->getName()."' with ".json_encode($p_attributes));
 
       foreach ($p_attributes as $v_key => $v_value) {
@@ -1810,87 +1843,59 @@ class arubacentral extends eqLogic {
     /* -------------------------------------------------------------------------*/
 
     /**---------------------------------------------------------------------------
-     * Method : omgDeviceUpdateAttributes()
+     * Method : acDeviceUpdateAttributes()
      * Description :
      * Parameters :
      * Returned value : 
      * ---------------------------------------------------------------------------
      */
-    public function omgDeviceUpdateAttributes($p_attributes, $p_gateway=null) {
+    public function acDeviceUpdateAttributes($p_attributes, $p_gateway=null) {
       arubacentral::log('debug', "Update attributs for '".$this->getName()."' with ".json_encode($p_attributes));
       
       $this->omgDeviceFlagRcvMqttMsg();
       
       $v_save_device_flag = false;
-       
-      $v_best_gateway = $this->omgGetConf('best_gateway');
-      $v_best_gateway_rssi = $this->omgGetConf('best_gateway_rssi');
-      $v_best_gateway_ts = $this->omgGetConf('best_gateway_ts');
-      $v_rssi = -199;
-      
-      $v_current_brand_model_name = $this->omgGetConf('device_brand_model');
-      $v_current_brand_score = $this->omgGetConf('device_brand_score');
-      $v_brand_auto_discover_count = $this->omgGetConf('brand_auto_discover_count');
-      $v_brand_model = null;
-      
-      if ($v_brand_auto_discover_count > 0) {
-      
-        [$v_brand_model, $v_brand_score] = arubacentral::omgBrandBestMatch($p_attributes);
-        //arubacentral::log('debug', "Auto-discover brand_model : '".$v_brand_model['name']."','".$v_brand_model['icon']."'"); 
-        
-        if (($v_brand_model != null) 
-             && ($v_current_brand_model_name != $v_brand_model['name']) 
-             && ($v_current_brand_score < $v_brand_score))  {
-        
-            arubacentral::log('debug', "Swap de brand_model '".$v_current_brand_model_name."' à '".$v_brand_model['name']."'"); 
-            
-            $this->setConfiguration('device_brand_model', arubacentral::agv($v_brand_model, 'name'));
-            $this->setConfiguration('device_brand_score', $v_brand_score);
-            $this->_no_score_reset_flag = true;
-            
-            $v_save_device_flag = true;
-        }
-        else if ($v_brand_model != null) {
-          arubacentral::log('debug', "Swap de brand_model ? non pas mieux (new='".$v_brand_model['name']."','".$v_brand_score."')"); 
-        }
-        else {
-          arubacentral::log('debug', "Swap de brand_model ? non pas de proposition."); 
-        }
-        
-        // ----- On décrémente le nombre de tentative de découverte, sauf si "toujours" choisit.
-        if ($v_brand_auto_discover_count != 99) {
-          $v_brand_auto_discover_count--;
-          $this->setConfiguration('brand_auto_discover_count', $v_brand_auto_discover_count);
-          if ($v_brand_auto_discover_count == 0) $this->setConfiguration('brand_auto_discover', 0);
-          $v_save_device_flag = true;
-        }
-        
-      }
-      
-      if ($v_brand_model == null) {
-        if (($v_brand_model = arubacentral::omgBrandInfo($v_current_brand_model_name)) === null) {
-          arubacentral::log('debug', "Erreur : Il manque les info de fabriquant");
-          return;
-        }
-      }
-      
-      // ----- Récupérer les infos actuelle mqtt_info
-      $v_mqtt_info_json = $this->getStatus('mqtt_info');
-      $v_mqtt_info = json_decode($v_mqtt_info_json, true);
-      if (!is_array($v_mqtt_info)) $v_mqtt_info = array();
-      $v_mqtt_info_change_flag = false;
 
-      // ----- On regarde chaque attribut pour voir s'il s'agit d'une commande, 
-      // d'une info de config ou un info de batterie, ou si l'on doit ignorer
-      // l'attribut
+      // ----- On regarde chaque categorie d'attribut  
       foreach ($p_attributes as $v_key => $v_value) {
-        // ----- On récupère si l'att est une cmd, de l'info batterie, autre ...
-        $v_att_type = arubacentral::omgBrandGetAttType($v_brand_model, $v_key);
+      
+        if ($v_key == 'stats') {
+          $v_save_device_flag |= $this->acDeviceUpdateAttributesFromStats($v_value);           
+        }
+          
+      }
+            
+      if ($v_save_device_flag) {
+        $this->save();
+      }
+      
+      arubacentral::log('debug', "Update attributs done");
+    }
+    /* -------------------------------------------------------------------------*/
+
+
+    /**---------------------------------------------------------------------------
+     * Method : acDeviceUpdateAttributesFromStats()
+     * Description :
+     * Parameters :
+     * Returned value : 
+     * ---------------------------------------------------------------------------
+     */
+    public function acDeviceUpdateAttributesFromStats($p_attributes, $p_gateway=null) {
+      arubacentral::log('debug', "Update Stats attributs for '".$this->getName()."' with ".json_encode($p_attributes));
+      
+      $v_save_device_flag = false;
+      
+      // ----- On regarde chaque attribut 
+      foreach ($p_attributes as $v_key => $v_value) {
+        arubacentral::log('debug', "  Attribute '".$v_key."' = ".$v_value."");
         
-        arubacentral::log('debug', "  Attribute '".$v_key."' (".$v_att_type.") = ".$v_value."");
-                
+        // TBC : on verra plus tard si on veut filtrer certaines valeurs
+        $v_att_type = 'cmd';
         if ($v_att_type == 'cmd') {
 
+          $v_key = 'stat.'.$v_key;
+          
           // ----- Look if command exists
           $v_cmd = $this->getCmd(null, $v_key);
           if (!is_object($v_cmd) && $this->omgGetConf('cmd_auto_discover')) {           
@@ -1911,55 +1916,11 @@ class arubacentral extends eqLogic {
             $this->checkAndUpdateCmd($v_key, $v_value);
           }
         }
-
-        else if ($v_att_type == 'battery') {
-          $this->batteryStatus($v_value);
-        }
-        
-        else if ($v_att_type == 'mqtt_info') {
-          if (!isset($v_mqtt_info[$v_key]) || ($v_mqtt_info[$v_key] != $v_value)) {
-            $v_mqtt_info[$v_key] = $v_value;
-            $v_mqtt_info_change_flag = true;
-          }
-        }
-        
-        else if ($v_att_type == 'ignore') {
-          // Nothing to do
-        }
-        
-        else {
-          // TBC : Nothing to do ?
-        }
-        
+                
       }
-      
-      if ($v_mqtt_info_change_flag) {
-        $this->setStatus('mqtt_info', json_encode($v_mqtt_info));
-        
-        //$this->save();
-        $v_save_device_flag = true;
-      }
-      
-      arubacentral::log('debug', "Best rssi : ".$v_best_gateway_rssi." new rssi=".$v_rssi);
-      
-      if (($p_gateway !== null) && ($v_best_gateway_rssi < $v_rssi)) {
-        $v_best = $p_gateway->omgGetConf('gateway_mqtt_topic');
-        arubacentral::log('debug', "Best Gateway is now : ".$v_best." with rssi=".$v_rssi);
-        $this->setConfiguration('best_gateway', $v_best);
-        $this->setConfiguration('best_gateway_rssi', $v_rssi);
-        $this->setConfiguration('best_gateway_ts', time());
-        //$this->save();
-        $v_save_device_flag = true;
-      }
-
-      if ($v_save_device_flag) {
-        $this->save();
-      }
-      
-      $this->omgDeviceFlagRcvMqttMsg();
-      //$this->omgDeviceChangeToOnline();
-      
+            
       arubacentral::log('debug', "Update attributs done");
+      return($v_save_device_flag);
     }
     /* -------------------------------------------------------------------------*/
 

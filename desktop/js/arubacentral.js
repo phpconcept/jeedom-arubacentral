@@ -138,7 +138,7 @@ function refreshDeviceList() {
   $('#device_list').load('index.php?v=d&plugin=arubacentral&modal=modal.device_list');
 }
 
-// TBC : should not be used for now. May be for future use, if adding multiple gateway becomes an option
+function cp_add_gateway() {}
 $('.eqLogicAction[data-action=cp_add_gateway]').off('click').on('click', function () {
   bootbox.prompt("{{Nom de la gateway ?}}", function (result) {
     if (result !== null) {
@@ -165,12 +165,40 @@ $('.eqLogicAction[data-action=cp_add_gateway]').off('click').on('click', functio
   });
 });
 
+function cp_add_device() {}
 $('.eqLogicAction[data-action=cp_add_device]').off('click').on('click', function () {
   bootbox.prompt("{{Nom du device ?}}", function (result) {
     if (result !== null) {
       jeedom.eqLogic.save({
         type: eqType,
         eqLogics: [{name: result,configuration: '{"type":"device"}'}],
+        error: function (error) {
+          $('#div_alert').showAlert({message: '3'+error.message, level: 'danger'});
+        },
+        success: function (_data) {
+          var vars = getUrlVars();
+          var url = 'index.php?';
+          for (var i in vars) {
+            if (i != 'id' && i != 'saveSuccessFull' && i != 'removeSuccessFull') {
+              url += i + '=' + vars[i].replace('#', '') + '&';
+            }
+          }
+          modifyWithoutSave = false;
+          url += 'id=' + _data.id + '&saveSuccessFull=1';
+          loadPage(url);
+        }
+      });
+    }
+  });
+});
+
+function cp_add_client() {}
+$('.eqLogicAction[data-action=cp_add_client]').off('click').on('click', function () {
+  bootbox.prompt("{{Nom du client ?}}", function (result) {
+    if (result !== null) {
+      jeedom.eqLogic.save({
+        type: eqType,
+        eqLogics: [{name: result,configuration: '{"type":"client"}'}],
         error: function (error) {
           $('#div_alert').showAlert({message: '3'+error.message, level: 'danger'});
         },
@@ -451,10 +479,8 @@ function saveEqLogic(_eqLogic) {
   var v_new_conf = {};
 
   var v_att_to_save = { "device" : 
-                          {"device_mqtt_topic":1,
+                          {"device_type":1,
                            "cmd_auto_discover":1,
-                           "device_brand_model":1,
-                           "brand_auto_discover":1,
                            "device_missing_detection":1,
                            "device_missing_timeout":1,
                            "____________":1

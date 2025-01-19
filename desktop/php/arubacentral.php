@@ -41,7 +41,13 @@ $eqLogics = eqLogic::byType($plugin->getId());
       <div class="cursor eqLogicAction logoPrimary" data-action="cp_add_device">
         <i class="fas fa-plus-circle"></i>
         <br>
-        <span>{{Ajouter Objet}}</span>
+        <span>{{Ajouter Device}}</span>
+      </div>
+
+      <div class="cursor eqLogicAction logoPrimary" data-action="cp_add_client">
+        <i class="fas fa-plus-circle"></i>
+        <br>
+        <span>{{Ajouter Client}}</span>
       </div>
 
       <div class="cursor logoSecondary" onclick="omg_modal_inclusion_display();">
@@ -79,7 +85,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
 			</span>
 		</div>
   <ul class="nav nav-tabs" role="tablist">
-    <li role="presentation"><a href="#" class="eqLogicAction" aria-controls="home" role="tab" data-toggle="tab" data-action="returnToThumbnailDisplay"><i class="fa fa-arrow-circle-left"></i></a></li>
+    <li role="presentation"><a href="#" class="eqLogicAction" aria-controls="home" role="tab" data-toggle="tab" data-action="returnToThumbnailDisplay" onClick="refreshDeviceList();"><i class="fa fa-arrow-circle-left"></i></a></li>
     <li role="presentation" class="active"><a href="#eqlogictab" aria-controls="home" role="tab" data-toggle="tab"><i class="fas fa-tachometer-alt"></i> {{Equipement}}</a></li>
     <li role="presentation"><a href="#commandtab" aria-controls="profile" role="tab" data-toggle="tab"><i class="fa fa-list-alt"></i> {{Commandes}}</a></li>
   </ul>
@@ -191,6 +197,9 @@ $eqLogics = eqLogic::byType($plugin->getId());
           </div>
           <div id="cp_panel_gateway" class="cp_panel_gateway" style="display:none;">
     	  <?php include_file('desktop', 'arubacentral_gateway.inc', 'php', 'arubacentral'); ?>
+          </div>
+          <div id="cp_panel_client" class="cp_panel_client" style="display:none;">
+    	  <?php include_file('desktop', 'arubacentral_client.inc', 'php', 'arubacentral'); ?>
           </div>
           
 </div>

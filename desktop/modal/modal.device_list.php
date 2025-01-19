@@ -78,6 +78,25 @@ $eqLogics = eqLogic::byType($plugin->getId());
 ?>
 </div>
 
+  <legend>
+    <i class="fas fa-table"></i> {{Clients}}
+    <label class="pull-right" style="padding: 0px 5px; "><a id="omg_client_delete_all"><i class="fa fa-trash"></i></a></label>
+  </legend>
+  <div class="eqLogicThumbnailContainer">
+
+<?php
+  $v_list = arubacentral::acClientList();
+  foreach ($v_list as $eqLogic) {
+    $opacity = ($eqLogic->getIsEnable()) ? '' : 'disableCard';
+    echo '<div class="eqLogicDisplayCard cursor '.$opacity.'" data-eqLogic_id="' . $eqLogic->getId() . '">';
+    echo '<img src="' . $eqLogic->getImage() . '"/>';
+    echo '<br>';
+    echo '<span class="name">' . $eqLogic->getHumanName(true, true) . '</span>';
+    echo '</div>';
+  }
+?>
+</div>
+
 <?php include_file('desktop', 'arubacentral', 'js', 'arubacentral'); ?>
 <?php include_file('core', 'plugin.template', 'js'); ?>
 
