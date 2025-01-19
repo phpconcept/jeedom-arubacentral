@@ -993,7 +993,7 @@ class arubacentral extends eqLogic {
         
 
         $this->setStatus('mqtt_info', '');
-        $this->setStatus('last_rcv_mqtt', 0);
+        $this->setStatus('device_last_rcv_mqtt', 0);
         
         // ----- No data to store for postSave() tasks
         $this->_pre_save_cache = null; // New eqpt => Nothing to collect        
@@ -1070,7 +1070,7 @@ class arubacentral extends eqLogic {
         
 
         $this->setStatus('mqtt_info', '');
-        $this->setStatus('last_rcv_mqtt', 0);
+        $this->setStatus('client_last_rcv_mqtt', 0);
         
         // ----- No data to store for postSave() tasks
         $this->_pre_save_cache = null; // New eqpt => Nothing to collect        
@@ -1582,14 +1582,14 @@ class arubacentral extends eqLogic {
     /* -------------------------------------------------------------------------*/
 
     /**---------------------------------------------------------------------------
-     * Method : omgGetType()
+     * Method : acGetType()
      * Description :
      *   Retourne l'un des 3 types majeurs d'équipement : 'gateway', 'device' ou 'zone'.
      * Parameters :
      * Returned value : 
      * ---------------------------------------------------------------------------
      */
-	function omgGetType() {
+	function acGetType() {
 	  return $this->getConfiguration('type', '');
 	}
     /* -------------------------------------------------------------------------*/
@@ -1604,7 +1604,7 @@ class arubacentral extends eqLogic {
      * ---------------------------------------------------------------------------
      */
 	function omgIsType($p_value) {
-      $v_type = $this->omgGetType();
+      $v_type = $this->acGetType();
       if (is_array($p_value)) {
         foreach ($p_value as $v_item) {
           if ($v_type == $v_item) {
@@ -2090,7 +2090,7 @@ class arubacentral extends eqLogic {
      * ---------------------------------------------------------------------------
      */
     public function omgDeviceFlagRcvMqttMsg() {    
-      $this->setStatus('last_rcv_mqtt', time());
+      $this->setStatus($this->acGetType().'_last_rcv_mqtt', time());
       $this->omgDeviceChangeToOnline();
     }
     /* -------------------------------------------------------------------------*/
@@ -2131,7 +2131,9 @@ class arubacentral extends eqLogic {
     public function omgDeviceCheckOnline() {    
       arubacentrallog::log('debug', 'omgDeviceCheckOnline()');
       
-      if (($v_present = $this->acGetConf('device_missing_detection')) == 0) {
+      $v_type = $this->acGetType();
+      
+      if (($v_present = $this->acGetConf($v_type.'_missing_detection')) == 0) {
         return;
       }
       
@@ -2139,8 +2141,8 @@ class arubacentral extends eqLogic {
         return;
       }
       
-      $v_last_ts = $this->getStatus('last_rcv_mqtt');
-      $v_timeout = 60*$this->acGetConf('device_missing_timeout');
+      $v_last_ts = $this->getStatus($v_type.'_last_rcv_mqtt');
+      $v_timeout = 60*$this->acGetConf($v_type.'_missing_timeout');
       
       //arubacentrallog::log('debug', 'omgDeviceCheckOnline() last_rcv_mqtt : '.$v_last_ts);
       //arubacentrallog::log('debug', 'omgDeviceCheckOnline() timeout : '.$v_timeout);

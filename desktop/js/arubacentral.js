@@ -454,8 +454,10 @@ function omg_mqtt_info_change() {
 
 }
 
-function omg_last_rcv_mqtt_change() {
-  var v_value = $('#last_rcv_mqtt').value();
+function omg_last_rcv_mqtt_change(p_type='') {
+  if (p_type != '') p_type = p_type+'_';
+  
+  var v_value = $('#'+p_type+'last_rcv_mqtt').value();
   
   if (v_value == 0) {
     var time = '';
@@ -472,7 +474,7 @@ function omg_last_rcv_mqtt_change() {
     var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
   }
   
-  $('#last_rcv_mqtt_display').html(time);
+  $('#'+p_type+'last_rcv_mqtt_display').html(time);
 }
 
 

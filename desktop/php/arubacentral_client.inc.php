@@ -28,11 +28,11 @@
   </div>
 
   <br>
-  <input type="hidden" id="last_rcv_mqtt" class="cp_attr_client eqLogicAttr "  data-l1key="status" data-l2key="last_rcv_mqtt" onChange="omg_last_rcv_mqtt_change();"></input>
+  <input type="hidden" id="client_last_rcv_mqtt" class="cp_attr_client eqLogicAttr "  data-l1key="status" data-l2key="client_last_rcv_mqtt" onChange="omg_last_rcv_mqtt_change('client');"></input>
 
     <div class="row form-group">
       <label class="col-sm-2 control-label">{{Dernier message reçu : }}</label>
-      <span id="last_rcv_mqtt_display" class="col-sm-7"></span>
+      <span id="client_last_rcv_mqtt_display" class="col-sm-7"></span>
     </div>
 
 

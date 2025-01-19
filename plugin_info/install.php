@@ -84,7 +84,7 @@ function arubacentral_update_v_1_3($v_from_version='') {
       continue;
     }
     
-    $v_type = $v_eq->omgGetType();
+    $v_type = $v_eq->acGetType();
     
     // ----- Ajout des configurations de temperature cible par device
     if ($v_eq->getConfiguration($v_type.'_temperature_confort', '') == '') {
