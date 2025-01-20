@@ -20,7 +20,6 @@ require_once __DIR__  . '/../../../../core/php/core.inc.php';
 
 require_once __DIR__  . '/../../../../plugins/arubacentral/core/php/arubacentral_const.inc.php';
 
-require_once __DIR__  . '/../../../../plugins/arubacentral/core/class/arubacentrallog.class.php';
 require_once __DIR__  . '/../../../../plugins/arubacentral/core/class/arubacentral.class.php';
 
 

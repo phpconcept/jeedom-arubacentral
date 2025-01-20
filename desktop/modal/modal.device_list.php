@@ -67,7 +67,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
   <div class="eqLogicThumbnailContainer">
 
 <?php
-  $v_list = arubacentral::omgDeviceList();
+  $v_list = arubacentral::acDeviceList();
   //$v_list = eqLogic::byType('arubacentral');
   foreach ($v_list as $eqLogic) {
     $opacity = ($eqLogic->getIsEnable()) ? '' : 'disableCard';

@@ -222,17 +222,9 @@ function omg_modal_inclusion_display_list(p_list) {
     v_html += '<tr class="omg_modal_inclusion_tr" data-id="'+i+'">';
     
     var v_name = '';
-    if (p_list[i]['brand_name']) {
-      if (v_name != '') v_name += ', ';
-      v_name += p_list[i]['brand_name'];
-    }
     if (p_list[i]['properties']['name']) {
       if (v_name != '') v_name += ', ';
       v_name += p_list[i]['properties']['name'];
-    }
-    if (p_list[i]['properties']['brand']) {
-      if (v_name != '') v_name += ', ';
-      v_name += p_list[i]['properties']['brand'];
     }
     if (p_list[i]['properties']['model']) {
       if (v_name != '') v_name += ', ';

@@ -49,7 +49,6 @@ try {
     
 	if (init('action') == 'omgInclusionAddDevice') {
         $v_id = init('id');
-        //arubacentrallog::log('debug', 'ajax id='.$v_id);
         
         // TBC : j'ai du encadrer cette fonction de ob_start/ob_end_clean, 
         // sinon j'avais des erreurs javascript ... vraiment strange

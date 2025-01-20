@@ -80,7 +80,7 @@ function arubacentral_update_v_1_3($v_from_version='') {
   foreach ($eqLogics as $v_eq) {
     $v_flag_save = false;
     
-    if (!$v_eq->omgIsType(array('device','zone'))) {
+    if (!$v_eq->acIsType(array('device','zone'))) {
       continue;
     }
     
