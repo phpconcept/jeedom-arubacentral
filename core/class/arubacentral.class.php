@@ -2179,6 +2179,10 @@ class arubacentral extends eqLogic {
           $v_save_device_flag |= $this->acClientUpdateAttributesFromLocation($v_value);           
         }
           
+        if ($v_key == 'state') {
+          $v_save_device_flag |= $this->acClientUpdateAttributesFromState($v_value);           
+        }
+          
       }
             
       if ($v_save_device_flag) {
@@ -2269,6 +2273,56 @@ class arubacentral extends eqLogic {
         if ($v_att_type == 'cmd') {
 
           $v_key = 'location.'.$v_key;
+          
+          // ----- Look if command exists
+          $v_cmd = $this->getCmd(null, $v_key);
+          if (!is_object($v_cmd) && $this->acGetConf('client_cmd_auto_discover')) {           
+            $v_subtype = 'string';
+            if (is_string($v_value)) $v_subtype = 'string';
+            if (is_numeric($v_value)) $v_subtype = 'numeric';
+            $v_is_visible = 0;
+            
+            $v_cmd = $this->omgCmdCreate($v_key, ['name'=>$v_key,
+                                        'type'=>'info',
+                                        'subtype'=>$v_subtype, 
+                                        'isHistorized'=>0, 
+                                        'isVisible'=>$v_is_visible]);
+          }
+          
+          // ----- Update value
+          if (is_object($v_cmd)) {
+            $this->checkAndUpdateCmd($v_key, $v_value);
+          }
+        }
+                
+      }
+            
+      arubacentral::log('debug', "Update attributs done");
+      return($v_save_device_flag);
+    }
+    /* -------------------------------------------------------------------------*/
+
+    /**---------------------------------------------------------------------------
+     * Method : acClientUpdateAttributesFromState()
+     * Description :
+     * Parameters :
+     * Returned value : 
+     * ---------------------------------------------------------------------------
+     */
+    public function acClientUpdateAttributesFromState($p_attributes, $p_gateway=null) {
+      arubacentral::log('debug', "Update State attributs for '".$this->getName()."' with ".json_encode($p_attributes));
+      
+      $v_save_device_flag = false;
+      
+      // ----- On regarde chaque attribut 
+      foreach ($p_attributes as $v_key => $v_value) {
+        arubacentral::log('debug', "  Attribute '".$v_key."' = ".$v_value."");
+        
+        // TBC : on verra plus tard si on veut filtrer certaines valeurs
+        $v_att_type = 'cmd';
+        if ($v_att_type == 'cmd') {
+
+          $v_key = 'state.'.$v_key;
           
           // ----- Look if command exists
           $v_cmd = $this->getCmd(null, $v_key);
